@@ -5,8 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "extra-streamlit-components>=0.1.81",
+    "langchain>=1.2.12",
+    "langchain-openai>=1.1.11",
+    "langsmith>=0.7.17",
+    "pillow>=12.1.1",
     "pytest>=8.4.2",
     "python-dotenv>=1.1.1",
+    "requests>=2.32.5",
+    "streamlit>=1.55.0",
 ]
 
 [build-system]
@@ -24,3 +32,11 @@ exclude = [
 
 [tool.pytest.ini_options]
 addopts = "-v --capture=no"
+markers = [
+    "integration: tests de integración que requieren credenciales externas",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.6",
+]

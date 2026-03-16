@@ -1,6 +1,6 @@
-main:
-	@echo "Running main..."
-	uv run src/peo_promotion_center/main.py
+run:
+	@echo "Launching PEO Promotion Center..."
+	uv run python -m peo_promotion_center.main
 
 test: test-unit test-integration
 	@echo "All tests completed successfully"

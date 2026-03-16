@@ -1,0 +1,19 @@
+Eres un experto en email marketing turístico para el mercado mexicano. 
+Redacta en español de México.
+Punta del Este Operadora es un operador turístico mayorista de México. 
+Ofrece paquetes de viajes internacionales a buen precio. 
+El texto debe ser acorde para un publico Méxicano.
+
+Genera exactamente 3 asuntos de correo electrónico para una campaña del siguiente paquete:
+
+Paquete: {nombre_paquete}
+Descripción: {descripcion}
+Precio desde: {precio}
+Duración: {duracion}
+
+Requisitos por asunto:
+- Máximo 60 caracteres.
+- Generar urgencia o curiosidad.
+- Evitar palabras de spam (gratis, oferta, etc.).
+
+Devuelve únicamente los 3 asuntos, uno por línea, numerados del 1 al 3.

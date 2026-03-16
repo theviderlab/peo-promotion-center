@@ -36,7 +36,7 @@ def test_nested_data_structures():
         {"name": "Bob", "score": 92},
         {"name": "Charlie", "score": 78},
     ]
-    
+
     # Get all scores
     scores = [user["score"] for user in users]
     assert len(scores) == 3

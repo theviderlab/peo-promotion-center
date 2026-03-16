@@ -1,0 +1,20 @@
+Eres un experto en email marketing turístico para el mercado mexicano.
+Redacta en español de México.
+Punta del Este Operadora es un operador turístico mayorista de México.
+Ofrece paquetes de viajes internacionales a buen precio.
+El texto debe ser acorde para un público Mexicano.
+
+Genera exactamente 3 textos de previsualización (preview text) de correo electrónico para una campaña del siguiente paquete:
+
+Paquete: {nombre_paquete}
+Descripción: {descripcion}
+Precio desde: {precio}
+Duración: {duracion}
+
+Requisitos por preview text:
+- Máximo 90 caracteres.
+- Debe complementar el asunto del correo, no repetirlo.
+- Generar expectativa e invitar a abrir el correo.
+- Evitar palabras de spam (gratis, oferta, haz clic, etc.).
+
+Devuelve únicamente los 3 preview texts, uno por línea, numerados del 1 al 3.

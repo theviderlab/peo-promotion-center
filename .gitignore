@@ -3,5 +3,9 @@
 
 .pytest_cache
 __pycache__
+*.py[cod]
 .ruff_cache
 .vscode
+
+descargas/*
+!descargas/.gitkeep
