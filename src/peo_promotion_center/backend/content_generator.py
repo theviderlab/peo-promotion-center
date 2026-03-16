@@ -13,7 +13,7 @@ from pathlib import Path
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from langsmith import set_run_metadata, traceable
+from langsmith import traceable
 from langsmith.run_helpers import tracing_context
 
 from peo_promotion_center.backend.models import GeneratedContent
@@ -143,7 +143,6 @@ def generate_content(metadata: dict, api_key: str | None = None) -> GeneratedCon
         ValueError: Si no hay ninguna API key disponible.
     """
     thread_id = str(uuid.uuid4())
-    set_run_metadata(thread_id=thread_id)
 
     # with_config propaga thread_id al nodo ChatOpenAI auto-traced por LangChain
     llm = _build_llm(api_key=api_key).with_config(

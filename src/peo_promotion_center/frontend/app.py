@@ -100,7 +100,7 @@ def render_crop_section() -> None:
             )
             st.session_state.offsets[fmt.slug] = offset
             preview_bytes = _cached_preview(str(sr.image_path), fmt.slug, offset)
-            st.image(preview_bytes, use_container_width=True)
+            st.image(preview_bytes, width="stretch")
 
 
 def render_content_section() -> None:
@@ -206,7 +206,7 @@ def main() -> None:
     st.markdown("<br>" * 2, unsafe_allow_html=True)
     _, col_logout = st.columns([8, 1])
     with col_logout:
-        if st.button("Cerrar sesión", use_container_width=True, type="tertiary"):
+        if st.button("Cerrar sesión", width="stretch", type="tertiary"):
             delete_auth_cookie(cm)
             st.session_state.authenticated = False
             st.rerun()
