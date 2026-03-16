@@ -1,6 +1,6 @@
 main:
 	@echo "Running main..."
-	uv run src/python-template/main.py
+	uv run src/peo_promotion_center/main.py
 
 test: test-unit test-integration
 	@echo "All tests completed successfully"
