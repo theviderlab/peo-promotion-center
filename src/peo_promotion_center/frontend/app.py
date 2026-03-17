@@ -18,6 +18,7 @@ from peo_promotion_center.backend.image_processor import (
 from peo_promotion_center.backend.scraper import scrape_package
 from peo_promotion_center.frontend.auth import render_auth_gate
 from peo_promotion_center.frontend.cookies import delete_auth_cookie, get_cookie_manager
+from peo_promotion_center.frontend.inpaint_ui import render_refinement_section
 from peo_promotion_center.frontend.session import _init_session
 from peo_promotion_center.frontend.zip_builder import build_zip
 
@@ -54,6 +55,7 @@ def render_url_section() -> None:
         st.session_state.generated_content = None
         st.session_state.zip_bytes = None
         st.session_state.zip_hash = None
+        st.session_state.inpaint_masks = {"post": None, "historia": None, "google": None}
         st.session_state.pop("edited_copy", None)
         st.session_state.pop("edited_asuntos", None)
         st.session_state.pop("edited_preview_texts", None)
@@ -109,7 +111,7 @@ def render_content_section() -> None:
     if gc is None:
         return
 
-    st.header("3. Contenido generado por IA")
+    st.header("4. Contenido generado por IA")
 
     if "edited_copy" not in st.session_state:
         st.session_state.edited_copy = gc.copy_redes
@@ -151,6 +153,10 @@ def render_download_section() -> None:
         "edited_preview_texts", list(getattr(gc, "preview_texts_mailing", ["", "", ""]))
     )
 
+    masks_hash = str({
+        k: (v.tobytes() if v is not None else None)
+        for k, v in st.session_state.get("inpaint_masks", {}).items()
+    })
     current_hash = hashlib.md5(
         "|".join([
             str(sr.image_path),
@@ -159,6 +165,7 @@ def render_download_section() -> None:
             copy_redes,
             str(asuntos),
             str(preview_texts),
+            masks_hash,
         ]).encode()
     ).hexdigest()
 
@@ -172,10 +179,11 @@ def render_download_section() -> None:
                 asuntos_mailing=asuntos,
                 preview_texts_mailing=preview_texts,
                 output_dir=st.session_state.session_dir,
+                inpaint_masks=st.session_state.get("inpaint_masks"),
             )
         st.session_state.zip_hash = current_hash
 
-    st.header("4. Descarga")
+    st.header("5. Descarga")
     st.download_button(
         label="Descargar paquete",
         data=st.session_state.zip_bytes,
@@ -198,6 +206,8 @@ def main() -> None:
     render_url_section()
     st.divider()
     render_crop_section()
+    st.divider()
+    render_refinement_section()
     st.divider()
     render_content_section()
     st.divider()

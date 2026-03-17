@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; overflow: hidden; font-family: sans-serif; }
+    .canvas-wrap { position: relative; display: inline-block; cursor: crosshair; }
+    #bgCanvas { display: block; }
+    #drawCanvas { position: absolute; top: 0; left: 0; }
+    .error { color: red; padding: 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="canvas-wrap" id="wrap">
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="drawCanvas"></canvas>
+  </div>
+
+  <script>
+    // ── Minimal inline Streamlit Component API ──────────────────────────────
+    // Implements COMPONENT_READY → RENDER → SET_FRAME_HEIGHT order correctly.
+    // SET_FRAME_HEIGHT is only called AFTER the host has ACK'd via RENDER,
+    // so it always arrives after COMPONENT_READY. This is compatible with
+    // Streamlit ≥1.55 which guards against early SET_FRAME_HEIGHT messages.
+    const Streamlit = (() => {
+      const _handlers = {};
+      const _send = (type, payload) =>
+        window.parent.postMessage({ isStreamlitMessage: true, type, ...payload }, "*");
+
+      window.addEventListener("message", (e) => {
+        if (e.source !== window.parent) return;
+        const { type, args, disabled, theme } = e.data || {};
+        if (type === "streamlit:render") {
+          (_handlers["render"] || []).forEach((fn) =>
+            fn({ args: args || {}, disabled: !!disabled, theme: theme || {} })
+          );
+        }
+      });
+
+      return {
+        onRender(fn) {
+          _handlers["render"] = _handlers["render"] || [];
+          _handlers["render"].push(fn);
+        },
+        setComponentReady() {
+          _send("streamlit:componentReady", { apiVersion: 1 });
+        },
+        setFrameHeight(h) {
+          _send("streamlit:setFrameHeight", {
+            height: h !== undefined ? h : document.body.scrollHeight,
+          });
+        },
+        setValue(v) {
+          _send("streamlit:setComponentValue", { value: v, dataType: "json" });
+        },
+      };
+    })();
+
+    // ── Canvas setup ────────────────────────────────────────────────────────
+    const bgCanvas  = document.getElementById("bgCanvas");
+    const drawCanvas = document.getElementById("drawCanvas");
+    const bgCtx     = bgCanvas.getContext("2d");
+    const drawCtx   = drawCanvas.getContext("2d");
+
+    let brushSize  = 20;
+    let isDrawing  = false;
+    let lastX      = null;
+    let lastY      = null;
+    let canvasW    = 400;
+    let canvasH    = 500;
+    let pendingClear = false;
+    let initialized = false;
+
+    function resize(w, h) {
+      canvasW = w; canvasH = h;
+      bgCanvas.width  = w; bgCanvas.height  = h;
+      drawCanvas.width = w; drawCanvas.height = h;
+      bgCanvas.style.width  = w + "px"; bgCanvas.style.height  = h + "px";
+      drawCanvas.style.width = w + "px"; drawCanvas.style.height = h + "px";
+    }
+
+    function drawBackground(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => { bgCtx.drawImage(img, 0, 0, canvasW, canvasH); resolve(); };
+        img.onerror = () => resolve();
+        img.src = src;
+      });
+    }
+
+    function getPos(e) {
+      const r = drawCanvas.getBoundingClientRect();
+      const scaleX = canvasW / r.width;
+      const scaleY = canvasH / r.height;
+      if (e.touches) {
+        return {
+          x: (e.touches[0].clientX - r.left) * scaleX,
+          y: (e.touches[0].clientY - r.top)  * scaleY,
+        };
+      }
+      return {
+        x: (e.clientX - r.left) * scaleX,
+        y: (e.clientY - r.top)  * scaleY,
+      };
+    }
+
+    function paintAt(x, y) {
+      drawCtx.globalCompositeOperation = "source-over";
+      drawCtx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      drawCtx.beginPath();
+      if (lastX !== null && lastY !== null) {
+        // Smooth stroke interpolation
+        const dist = Math.hypot(x - lastX, y - lastY);
+        const steps = Math.max(1, Math.floor(dist / (brushSize * 0.3)));
+        for (let i = 0; i <= steps; i++) {
+          const lx = lastX + (x - lastX) * (i / steps);
+          const ly = lastY + (y - lastY) * (i / steps);
+          drawCtx.beginPath();
+          drawCtx.arc(lx, ly, brushSize / 2, 0, Math.PI * 2);
+          drawCtx.fill();
+        }
+      } else {
+        drawCtx.arc(x, y, brushSize / 2, 0, Math.PI * 2);
+        drawCtx.fill();
+      }
+      lastX = x; lastY = y;
+    }
+
+    function getMaskDataURL() {
+      // Return the draw layer (white strokes on transparent) as PNG
+      return drawCanvas.toDataURL("image/png");
+    }
+
+    function hasMaskStrokes() {
+      const data = drawCtx.getImageData(0, 0, canvasW, canvasH).data;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] > 50) return true;
+      }
+      return false;
+    }
+
+    function sendCurrentValue() {
+      Streamlit.setValue(hasMaskStrokes() ? getMaskDataURL() : null);
+    }
+
+    function clearMask() {
+      drawCtx.clearRect(0, 0, canvasW, canvasH);
+      lastX = null; lastY = null;
+    }
+
+    // Mouse events
+    drawCanvas.addEventListener("mousedown", (e) => {
+      isDrawing = true;
+      const {x, y} = getPos(e);
+      lastX = null; lastY = null;
+      paintAt(x, y);
+    });
+    drawCanvas.addEventListener("mousemove", (e) => {
+      if (!isDrawing) return;
+      const {x, y} = getPos(e);
+      paintAt(x, y);
+    });
+    drawCanvas.addEventListener("mouseup", () => {
+      if (!isDrawing) return;
+      isDrawing = false; lastX = null; lastY = null;
+      sendCurrentValue();
+    });
+    drawCanvas.addEventListener("mouseleave", () => { isDrawing = false; lastX = null; lastY = null; });
+
+    // Touch events
+    drawCanvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      isDrawing = true; lastX = null; lastY = null;
+      const {x, y} = getPos(e); paintAt(x, y);
+    }, {passive: false});
+    drawCanvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const {x, y} = getPos(e); paintAt(x, y);
+    }, {passive: false});
+    drawCanvas.addEventListener("touchend", () => {
+      if (!isDrawing) return;
+      isDrawing = false; lastX = null; lastY = null;
+      sendCurrentValue();
+    });
+
+    // ── Streamlit render handler ─────────────────────────────────────────────
+    Streamlit.onRender(async (event) => {
+      const { args } = event;
+
+      // Handle clear command
+      if (args.clear) {
+        clearMask();
+        Streamlit.setValue(null);
+        // Height is already set; no need to change it
+        return;
+      }
+
+      // Normal render: update canvas geometry + background
+      const w = args.width  || 400;
+      const h = args.height || 500;
+      const bgSrc = args.bg_image || null;
+      brushSize   = args.brush_size || brushSize;
+
+      if (!initialized || w !== canvasW || h !== canvasH) {
+        // Preserve existing mask strokes across resize (e.g. expander toggle)
+        let savedMask = null;
+        if (initialized) {
+          savedMask = getMaskDataURL();
+        }
+        resize(w, h);
+        if (bgSrc) await drawBackground(bgSrc);
+        if (savedMask) {
+          const maskImg = new Image();
+          await new Promise((res) => {
+            maskImg.onload = () => { drawCtx.drawImage(maskImg, 0, 0, w, h); res(); };
+            maskImg.onerror = res;
+            maskImg.src = savedMask;
+          });
+        }
+        initialized = true;
+        // CORRECT ORDER: SET_FRAME_HEIGHT always arrives after COMPONENT_READY
+        // because this handler only runs after the host sends RENDER, which
+        // only happens after COMPONENT_READY is acknowledged.
+        Streamlit.setFrameHeight(h);
+      } else {
+        // Brush-size-only change – no geometry update needed
+        brushSize = args.brush_size || brushSize;
+      }
+    });
+
+    // ── Signal ready (COMPONENT_READY must include isStreamlitMessage: true) ──
+    // Streamlit ≥1.55 checks Object.hasOwn(data, "isStreamlitMessage") in its
+    // onMessageEvent handler and silently drops messages that lack this flag.
+    // The _send() helper above includes it in every outgoing message.
+    Streamlit.setComponentReady();
+  </script>
+</body>
+</html>

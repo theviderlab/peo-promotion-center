@@ -55,6 +55,7 @@ def test_init_session_creates_all_keys(tmp_path: Path, monkeypatch):
     assert fake_state["offsets"] == {"post": 0.4, "historia": 0.5, "google": 0.25}
     assert fake_state["authenticated"] is False
     assert fake_state["openai_api_key"] is None
+    assert fake_state["inpaint_masks"] == {"post": None, "historia": None, "google": None}
 
 
 def test_init_session_creates_session_dir(tmp_path: Path, monkeypatch):
@@ -151,8 +152,8 @@ def test_build_zip_contains_five_files(tmp_path: Path):
     source.write_bytes(b"FAKE_FLYER")
 
     with patch(
-        "peo_promotion_center.frontend.zip_builder.process_all_formats",
-        return_value=fake_pngs,
+        "peo_promotion_center.frontend.zip_builder.generate_format",
+        side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
     ):
         result = build_zip(
             source_path=source,
@@ -184,13 +185,13 @@ def test_build_zip_text_content(tmp_path: Path):
     source.write_bytes(b"FAKE_FLYER")
 
     with patch(
-        "peo_promotion_center.frontend.zip_builder.process_all_formats",
-        return_value=fake_pngs,
+        "peo_promotion_center.frontend.zip_builder.generate_format",
+        side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
     ):
         result = build_zip(
             source_path=source,
             slug="slug",
-            offsets={},
+            offsets={"post": 0.5, "historia": 0.5, "google": 0.5},
             copy_redes="Copy de redes\nSegunda línea",
             asuntos_mailing=["A1", "A2", "A3"],
             preview_texts_mailing=["P1", "P2", "P3"],
@@ -214,13 +215,13 @@ def test_build_zip_retorna_bytes(tmp_path: Path):
     source.write_bytes(b"FAKE_FLYER")
 
     with patch(
-        "peo_promotion_center.frontend.zip_builder.process_all_formats",
-        return_value=fake_pngs,
+        "peo_promotion_center.frontend.zip_builder.generate_format",
+        side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
     ):
         result = build_zip(
             source_path=source,
             slug="slug",
-            offsets={},
+            offsets={"post": 0.5, "historia": 0.5, "google": 0.5},
             copy_redes="",
             asuntos_mailing=[],
             preview_texts_mailing=[],
