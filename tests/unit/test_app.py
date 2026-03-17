@@ -55,7 +55,9 @@ def test_init_session_creates_all_keys(tmp_path: Path, monkeypatch):
     assert fake_state["offsets"] == {"post": 0.4, "historia": 0.5, "google": 0.25}
     assert fake_state["authenticated"] is False
     assert fake_state["openai_api_key"] is None
-    assert fake_state["inpaint_masks"] == {"post": None, "historia": None, "google": None}
+    assert fake_state["inpainted_finals"] == {"post": None, "historia": None, "google": None}
+    assert fake_state["inpaint_pending"] == {"post": None, "historia": None, "google": None}
+    assert fake_state["inpaint_history"] == {"post": [], "historia": [], "google": []}
 
 
 def test_init_session_creates_session_dir(tmp_path: Path, monkeypatch):

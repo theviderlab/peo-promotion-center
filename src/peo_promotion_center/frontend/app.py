@@ -55,7 +55,9 @@ def render_url_section() -> None:
         st.session_state.generated_content = None
         st.session_state.zip_bytes = None
         st.session_state.zip_hash = None
-        st.session_state.inpaint_masks = {"post": None, "historia": None, "google": None}
+        st.session_state.inpainted_finals = {"post": None, "historia": None, "google": None}
+        st.session_state.inpaint_pending = {"post": None, "historia": None, "google": None}
+        st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}
         st.session_state.pop("edited_copy", None)
         st.session_state.pop("edited_asuntos", None)
         st.session_state.pop("edited_preview_texts", None)
@@ -153,9 +155,9 @@ def render_download_section() -> None:
         "edited_preview_texts", list(getattr(gc, "preview_texts_mailing", ["", "", ""]))
     )
 
-    masks_hash = str({
+    finals_hash = str({
         k: (v.tobytes() if v is not None else None)
-        for k, v in st.session_state.get("inpaint_masks", {}).items()
+        for k, v in st.session_state.get("inpainted_finals", {}).items()
     })
     current_hash = hashlib.md5(
         "|".join([
@@ -165,7 +167,7 @@ def render_download_section() -> None:
             copy_redes,
             str(asuntos),
             str(preview_texts),
-            masks_hash,
+            finals_hash,
         ]).encode()
     ).hexdigest()
 
@@ -179,7 +181,7 @@ def render_download_section() -> None:
                 asuntos_mailing=asuntos,
                 preview_texts_mailing=preview_texts,
                 output_dir=st.session_state.session_dir,
-                inpaint_masks=st.session_state.get("inpaint_masks"),
+                inpainted_images=st.session_state.get("inpainted_finals"),
             )
         st.session_state.zip_hash = current_hash
 

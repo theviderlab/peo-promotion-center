@@ -48,4 +48,6 @@ def _init_session() -> None:
     st.session_state.offsets = {"post": 0.4, "historia": 0.5, "google": 0.25}
     st.session_state.authenticated = False
     st.session_state.openai_api_key = None  # None = usa OPENAI_API_KEY de secrets/env
-    st.session_state.inpaint_masks = {"post": None, "historia": None, "google": None}
+    st.session_state.inpainted_finals = {"post": None, "historia": None, "google": None}
+    st.session_state.inpaint_pending = {"post": None, "historia": None, "google": None}
+    st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}

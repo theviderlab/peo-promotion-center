@@ -7,7 +7,6 @@ from pathlib import Path
 from PIL import Image
 
 from peo_promotion_center.backend.image_processor import ALL_FORMATS, generate_format
-from peo_promotion_center.backend.inpainter import inpaint
 
 
 def build_zip(
@@ -18,7 +17,7 @@ def build_zip(
     asuntos_mailing: list[str],
     preview_texts_mailing: list[str],
     output_dir: Path,
-    inpaint_masks: dict[str, Image.Image | None] | None = None,
+    inpainted_images: dict[str, Image.Image | None] | None = None,
 ) -> bytes:
     """
     Genera los tres formatos PNG y los empaqueta junto con los textos en un ZIP en memoria.
@@ -31,19 +30,19 @@ def build_zip(
         asuntos_mailing: Lista de tres asuntos de mailing.
         preview_texts_mailing: Lista de tres preview texts de mailing.
         output_dir: Directorio donde se guardan los PNG generados.
-        inpaint_masks: Máscaras de inpainting opcionales por formato slug.
-                       Si una máscara no es None, se aplica inpainting sobre el PNG generado.
+        inpainted_images: Imágenes ya procesadas por inpainting opcionales por formato slug.
+                          Si un formato tiene imagen aceptada, se usa directamente sin re-ejecutar LaMa.
 
     Returns:
         Bytes del archivo ZIP generado en memoria.
     """
     png_paths: dict[str, Path] = {}
     for fmt in ALL_FORMATS:
-        out_path = generate_format(source_path, fmt, offsets[fmt.slug], slug, output_dir)
-        if inpaint_masks and inpaint_masks.get(fmt.slug) is not None:
-            with Image.open(out_path) as img:
-                result = inpaint(img.convert("RGB"), inpaint_masks[fmt.slug])
-            result.save(out_path, format="PNG")
+        if inpainted_images and inpainted_images.get(fmt.slug) is not None:
+            out_path = output_dir / f"{slug}_{fmt.slug}.png"
+            inpainted_images[fmt.slug].save(out_path, format="PNG")
+        else:
+            out_path = generate_format(source_path, fmt, offsets[fmt.slug], slug, output_dir)
         png_paths[fmt.slug] = out_path
 
     buf = io.BytesIO()

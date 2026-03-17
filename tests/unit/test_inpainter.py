@@ -45,32 +45,78 @@ def test_inpaint_converts_mask_to_grayscale(rgb_image: Image.Image) -> None:
     assert mask_arg.mode == "L"
 
 
-def test_inpaint_none_mask_skipped_by_zip_builder() -> None:
-    """zip_builder no llama a inpaint() si la máscara del formato es None."""
-    # zip_builder comprueba `if inpaint_masks and inpaint_masks.get(fmt.slug) is not None`
-    # antes de invocar inpaint(), por lo que con None el modelo nunca se carga.
-    # Este test verifica la lógica de guarda en zip_builder.
+def test_inpainted_images_bypasses_generate_format() -> None:
+    """zip_builder usa la imagen aceptada directamente sin llamar a generate_format."""
     from peo_promotion_center.frontend.zip_builder import build_zip
     from pathlib import Path
     import tempfile
 
-    # Usamos una imagen temporal mínima para no requerir recursos reales
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        img_path = tmp_path / "test.png"
-        Image.new("RGB", (1920, 1080), color=(200, 150, 100)).save(img_path)
+        # Imagen fuente requerida para el ZIP
+        source = tmp_path / "test.png"
+        source.write_bytes(b"FAKE_FLYER")
 
-        # inpaint_masks con None → build_zip no debe llamar a inpaint
-        with patch("peo_promotion_center.frontend.zip_builder.inpaint") as mock_inpaint:
+        # Pre-crear archivos para historia/google (generados via mock)
+        fake_pngs: dict[str, Path] = {}
+        for slug in ("historia", "google"):
+            p = tmp_path / f"test-slug_{slug}.png"
+            p.write_bytes(b"FAKE_PNG")
+            fake_pngs[slug] = p
+
+        inpainted_post = Image.new("RGB", (1080, 1350), color=(10, 20, 30))
+
+        with patch(
+            "peo_promotion_center.frontend.zip_builder.generate_format",
+            side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+        ) as mock_gen:
             build_zip(
-                source_path=img_path,
+                source_path=source,
                 slug="test-slug",
                 offsets={"post": 0.4, "historia": 0.5, "google": 0.25},
                 copy_redes="Test copy",
                 asuntos_mailing=["A1", "A2", "A3"],
                 preview_texts_mailing=["P1", "P2", "P3"],
                 output_dir=tmp_path,
-                inpaint_masks={"post": None, "historia": None, "google": None},
+                inpainted_images={"post": inpainted_post, "historia": None, "google": None},
             )
 
-        mock_inpaint.assert_not_called()
+        called_slugs = [c[0][1].slug for c in mock_gen.call_args_list]
+        assert "post" not in called_slugs
+        assert "historia" in called_slugs
+        assert "google" in called_slugs
+
+
+def test_inpainted_images_none_calls_generate_format_for_all() -> None:
+    """zip_builder llama a generate_format para todos los formatos si no hay inpainted_images."""
+    from peo_promotion_center.frontend.zip_builder import build_zip
+    from pathlib import Path
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        source = tmp_path / "test.png"
+        source.write_bytes(b"FAKE_FLYER")
+
+        fake_pngs: dict[str, Path] = {}
+        for slug in ("post", "historia", "google"):
+            p = tmp_path / f"test-slug_{slug}.png"
+            p.write_bytes(b"FAKE_PNG")
+            fake_pngs[slug] = p
+
+        with patch(
+            "peo_promotion_center.frontend.zip_builder.generate_format",
+            side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+        ) as mock_gen:
+            build_zip(
+                source_path=source,
+                slug="test-slug",
+                offsets={"post": 0.4, "historia": 0.5, "google": 0.25},
+                copy_redes="Test copy",
+                asuntos_mailing=["A1", "A2", "A3"],
+                preview_texts_mailing=["P1", "P2", "P3"],
+                output_dir=tmp_path,
+                inpainted_images=None,
+            )
+
+        assert mock_gen.call_count == 3

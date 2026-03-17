@@ -189,10 +189,13 @@
     Streamlit.onRender(async (event) => {
       const { args } = event;
 
-      // Handle clear command
+      // Handle clear command (optionally with a new background image)
       if (args.clear) {
         clearMask();
         Streamlit.setValue(null);
+        if (args.bg_image) {
+          await drawBackground(args.bg_image);
+        }
         // Height is already set; no need to change it
         return;
       }
