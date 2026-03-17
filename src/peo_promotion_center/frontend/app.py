@@ -1,7 +1,6 @@
 """Interfaz de usuario Streamlit para el PEO Promotion Center."""
 
 import dataclasses
-from pathlib import Path
 
 import streamlit as st
 
@@ -11,25 +10,12 @@ from peo_promotion_center.backend.exceptions import (
     ImageNotFoundError,
     ScraperError,
 )
-from peo_promotion_center.backend.image_processor import (
-    ALL_FORMATS,
-    preview_format,
-)
 from peo_promotion_center.backend.scraper import scrape_package
 from peo_promotion_center.frontend.auth import render_auth_gate
 from peo_promotion_center.frontend.cookies import delete_auth_cookie, get_cookie_manager
-from peo_promotion_center.frontend.inpaint_ui import render_refinement_section
+from peo_promotion_center.frontend.crop_refine_ui import render_crop_refine_section
 from peo_promotion_center.frontend.session import _init_session
 from peo_promotion_center.frontend.zip_builder import build_zip
-
-
-@st.cache_data
-def _cached_preview(source_str: str, fmt_slug: str, offset_y: float) -> bytes:
-    """Genera PNG de previsualización en memoria, cacheado por argumentos."""
-    fmt = next((f for f in ALL_FORMATS if f.slug == fmt_slug), None)
-    if fmt is None:
-        raise ValueError(f"Formato de imagen desconocido: '{fmt_slug}'.")
-    return preview_format(Path(source_str), fmt, offset_y)
 
 
 def render_url_section() -> None:
@@ -58,6 +44,7 @@ def render_url_section() -> None:
         st.session_state.inpainted_finals = {"post": None, "historia": None, "google": None}
         st.session_state.inpaint_pending = {"post": None, "historia": None, "google": None}
         st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}
+        st.session_state.canvas_open = {"post": False, "historia": False, "google": False}
         st.session_state.pop("edited_copy", None)
         st.session_state.pop("edited_asuntos", None)
         st.session_state.pop("edited_preview_texts", None)
@@ -81,31 +68,6 @@ def render_url_section() -> None:
         st.error(f"Error al generar contenido con IA: {exc}")
 
 
-def render_crop_section() -> None:
-    """Sección 2: sliders de recorte y previsualización por formato."""
-    if st.session_state.scrape_result is None:
-        return
-
-    st.header("2. Selección de recorte")
-    sr = st.session_state.scrape_result
-    cols = st.columns(3)
-
-    for col, fmt in zip(cols, ALL_FORMATS):
-        with col:
-            st.subheader(f"{fmt.name} ({fmt.width}×{fmt.height})")
-            offset = st.slider(
-                "Posición de recorte",
-                min_value=0.0,
-                max_value=1.0,
-                value=st.session_state.offsets[fmt.slug],
-                step=0.01,
-                help="0 = arriba · 1 = abajo",
-                key=f"slider_{fmt.slug}",
-            )
-            st.session_state.offsets[fmt.slug] = offset
-            preview_bytes = _cached_preview(str(sr.image_path), fmt.slug, offset)
-            st.image(preview_bytes, width="stretch")
-
 
 def render_content_section() -> None:
     """Sección 3: copy de IA editable."""
@@ -113,7 +75,7 @@ def render_content_section() -> None:
     if gc is None:
         return
 
-    st.header("4. Contenido generado por IA")
+    st.header("3. Contenido generado por IA")
 
     if "edited_copy" not in st.session_state:
         st.session_state.edited_copy = gc.copy_redes
@@ -185,7 +147,7 @@ def render_download_section() -> None:
             )
         st.session_state.zip_hash = current_hash
 
-    st.header("5. Descarga")
+    st.header("4. Descarga")
     st.download_button(
         label="Descargar paquete",
         data=st.session_state.zip_bytes,
@@ -207,9 +169,7 @@ def main() -> None:
     st.title("PEO Promotion Center")
     render_url_section()
     st.divider()
-    render_crop_section()
-    st.divider()
-    render_refinement_section()
+    render_crop_refine_section()
     st.divider()
     render_content_section()
     st.divider()

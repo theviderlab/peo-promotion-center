@@ -51,3 +51,4 @@ def _init_session() -> None:
     st.session_state.inpainted_finals = {"post": None, "historia": None, "google": None}
     st.session_state.inpaint_pending = {"post": None, "historia": None, "google": None}
     st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}
+    st.session_state.canvas_open = {"post": False, "historia": False, "google": False}
