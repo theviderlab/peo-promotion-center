@@ -155,7 +155,7 @@ def test_build_zip_contains_five_files(tmp_path: Path):
 
     with patch(
         "peo_promotion_center.frontend.zip_builder.generate_format",
-        side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+        side_effect=lambda src, fmt, offset, slug, outdir, **kw: fake_pngs[fmt.slug],
     ):
         result = build_zip(
             source_path=source,
@@ -188,7 +188,7 @@ def test_build_zip_text_content(tmp_path: Path):
 
     with patch(
         "peo_promotion_center.frontend.zip_builder.generate_format",
-        side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+        side_effect=lambda src, fmt, offset, slug, outdir, **kw: fake_pngs[fmt.slug],
     ):
         result = build_zip(
             source_path=source,
@@ -218,7 +218,7 @@ def test_build_zip_retorna_bytes(tmp_path: Path):
 
     with patch(
         "peo_promotion_center.frontend.zip_builder.generate_format",
-        side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+        side_effect=lambda src, fmt, offset, slug, outdir, **kw: fake_pngs[fmt.slug],
     ):
         result = build_zip(
             source_path=source,

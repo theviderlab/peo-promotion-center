@@ -68,7 +68,7 @@ def test_inpainted_images_bypasses_generate_format() -> None:
 
         with patch(
             "peo_promotion_center.frontend.zip_builder.generate_format",
-            side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+            side_effect=lambda src, fmt, offset, slug, outdir, **kw: fake_pngs[fmt.slug],
         ) as mock_gen:
             build_zip(
                 source_path=source,
@@ -106,7 +106,7 @@ def test_inpainted_images_none_calls_generate_format_for_all() -> None:
 
         with patch(
             "peo_promotion_center.frontend.zip_builder.generate_format",
-            side_effect=lambda src, fmt, offset, slug, outdir: fake_pngs[fmt.slug],
+            side_effect=lambda src, fmt, offset, slug, outdir, **kw: fake_pngs[fmt.slug],
         ) as mock_gen:
             build_zip(
                 source_path=source,

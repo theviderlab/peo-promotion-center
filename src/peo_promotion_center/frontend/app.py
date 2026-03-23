@@ -14,7 +14,7 @@ from peo_promotion_center.backend.scraper import scrape_package
 from peo_promotion_center.frontend.auth import render_auth_gate
 from peo_promotion_center.frontend.cookies import delete_auth_cookie, get_cookie_manager
 from peo_promotion_center.frontend.crop_refine_ui import render_crop_refine_section
-from peo_promotion_center.frontend.session import _init_session
+from peo_promotion_center.frontend.session import _build_initial_tag_overlays, _init_session
 from peo_promotion_center.frontend.zip_builder import build_zip
 
 
@@ -45,6 +45,7 @@ def render_url_section() -> None:
         st.session_state.inpaint_pending = {"post": None, "historia": None, "google": None}
         st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}
         st.session_state.canvas_open = {"post": False, "historia": False, "google": False}
+        st.session_state.tag_overlays = _build_initial_tag_overlays()
         st.session_state.pop("edited_copy", None)
         st.session_state.pop("edited_asuntos", None)
         st.session_state.pop("edited_preview_texts", None)
@@ -130,6 +131,7 @@ def render_download_section() -> None:
             str(asuntos),
             str(preview_texts),
             finals_hash,
+            str(st.session_state.get("tag_overlays", {})),
         ]).encode()
     ).hexdigest()
 
@@ -144,6 +146,7 @@ def render_download_section() -> None:
                 preview_texts_mailing=preview_texts,
                 output_dir=st.session_state.session_dir,
                 inpainted_images=st.session_state.get("inpainted_finals"),
+                tag_overlays=st.session_state.get("tag_overlays"),
             )
         st.session_state.zip_hash = current_hash
 

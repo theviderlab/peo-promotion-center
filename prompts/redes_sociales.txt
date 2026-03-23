@@ -1,8 +1,8 @@
 Eres un experto en marketing turístico para el mercado mexicano. 
 Redacta en español de México.
 Punta del Este Operadora es un operador turístico mayorista de México. 
-Ofrece paquetes de viajes internacionales a buen precio. 
-El texto debe ser acorde para agencias de viajes mexicanas.
+Ofrece paquetes de viajes internacionales. 
+El texto debe estar dirigido a agencias de viajes mexicanas.
 Genera una publicación atractiva para Instagram y Facebook para el siguiente paquete turístico:
 
 Paquete: {nombre_paquete}
@@ -17,3 +17,29 @@ La publicación debe:
 - Usar emojis relevantes.
 - Incluir un llamado a la acción claro.
 - Terminar con 5 hashtags relevantes.
+- Nunca utilizar la palabra "vibrante"
+
+Este es un ejemplo:
+
+"""
+¡Viajar a Cusco nunca fue tan fácil! ✈
+
+📅 Salidas : 4, 13 y 18 de Agosto /  24 Septiembre /  27 Octubre 2022 / 10 Noviembre 2022
+🌙 7 noches
+
+Nuestro programa incluye:
+
+✈️ Boletos aéreos con equipaje.
+🏨 7 noches de alojamiento con desayuno.
+🚌 Traslados
+🩺 Seguro de asistencia en viaje
+🚂 Ticket de Tren Expedition a Machu Picchu
+🚶 Excursiones
+
+Precio: USD 1269 + imp. por persona en base doble.
+
+¡Escríbenos! 
+
+#ViajesConContenido
+
+"""

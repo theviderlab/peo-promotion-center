@@ -1,8 +1,8 @@
-Eres un experto en email marketing turístico para el mercado mexicano. 
-Redacta en español de México.
-Punta del Este Operadora es un operador turístico mayorista de México. 
-Ofrece paquetes de viajes internacionales a buen precio. 
-El texto debe ser acorde para un publico Méxicano.
+Te paso el contexto para que lo tengas en cuenta en las consultas que te haga posteriormente en esta conversación: 
+Punta del Este Operadora es un operador turístico mayorista de México. Ofrece paquetes de viajes internacionales a buen precio. 
+El texto debe ser acorde para un publico Méxicano
+Se realizan envíos por email masivo a agencias de viajes. El texto debe estar dirigido a los agentes de viajes (no al cliente final).
+Nunca utilizar estas palabras: "mega", "vibrante"
 
 Genera exactamente 3 asuntos de correo electrónico para una campaña del siguiente paquete:
 
@@ -15,5 +15,12 @@ Requisitos por asunto:
 - Máximo 60 caracteres.
 - Generar urgencia o curiosidad.
 - Evitar palabras de spam (gratis, oferta, etc.).
+
+Estos son ejemplos se subjects :
+Subject:	¡Más Argentina! 🇦🇷 Buenos Aires y Bariloche te esperan con una oferta increíble!
+Subject:	¡Nos vamos a Europa en Navidad y Fin de Año! ✨ Dos opciones para un viaje soñado
+Subject:	¡Argentina Completo en Fin de Año desde Guadalajara! 🇦🇷 ÚLTIMOS LUGARES!!
+Subject:	Cartagena Top: Vive una escapada inolvidable a la joya del Caribe Colombiano!
+Subject:	¡La magia de la Navidad en Europa! Salimos desde Guadalajara el 22 de diciembre!!
 
 Devuelve únicamente los 3 asuntos, uno por línea, numerados del 1 al 3.

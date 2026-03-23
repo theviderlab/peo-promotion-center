@@ -8,11 +8,67 @@ import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
 
+from peo_promotion_center.backend.compositing import OVERLAY_FORMATS, TAG_REGISTRY, OverlaySpec, apply_overlays
 from peo_promotion_center.backend.image_processor import ALL_FORMATS, preview_format
 from peo_promotion_center.backend.inpainter import inpaint
 
 BRUSH_SIZE_DEFAULT = 20
 CANVAS_WIDTH = 320  # px de visualización (no afecta resolución de salida)
+
+
+@st.cache_resource
+def _load_tag_image(path: str) -> Image.Image:
+    """Carga un PNG de tag en RGBA (cacheado por ruta)."""
+    return Image.open(path).convert("RGBA")
+
+
+def _build_overlay_specs(slug: str) -> list[OverlaySpec]:
+    """Construye la lista de OverlaySpec activos para el slug dado."""
+    fmt_state = st.session_state.tag_overlays.get(slug, {})
+    specs: list[OverlaySpec] = []
+    for tag in TAG_REGISTRY:
+        state = fmt_state.get(tag.tag_id, {})
+        if state.get("enabled"):
+            specs.append(OverlaySpec(tag=_load_tag_image(str(tag.path)), x=state["x"], y=state["y"]))
+    return specs
+
+
+def _render_overlay_section(fmt: object, slug: str) -> None:
+    """
+    Renderiza los controles de overlay (checkbox + X/Y) para un formato.
+
+    Args:
+        fmt: Objeto ImageFormat con width y height.
+        slug: Slug del formato (clave en session_state.tag_overlays).
+    """
+    st.markdown("**Overlays**")
+    fmt_state = st.session_state.tag_overlays.get(slug, {})
+    for tag in TAG_REGISTRY:
+        state = fmt_state[tag.tag_id]
+        tag_img = _load_tag_image(str(tag.path))
+        tag_w, tag_h = tag_img.size
+        enabled = st.checkbox(
+            tag.label, value=state["enabled"], key=f"overlay_{slug}_{tag.tag_id}_enabled"
+        )
+        state["enabled"] = enabled
+        if enabled:
+            col_x, col_y = st.columns(2)
+            with col_x:
+                state["x"] = st.number_input(
+                    "X",
+                    min_value=0,
+                    max_value=fmt.width - tag_w,  # type: ignore[attr-defined]
+                    value=state["x"],
+                    key=f"overlay_{slug}_{tag.tag_id}_x",
+                )
+            with col_y:
+                state["y"] = st.number_input(
+                    "Y",
+                    min_value=0,
+                    max_value=fmt.height - tag_h,  # type: ignore[attr-defined]
+                    value=state["y"],
+                    key=f"overlay_{slug}_{tag.tag_id}_y",
+                )
 
 _COMPONENT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "canvas_component"
@@ -195,8 +251,11 @@ def _render_format_expander(fmt: object, sr: object) -> None:
         if st.session_state.canvas_open.get(slug, False):
             _render_canvas_editor(fmt, ref_img, canvas_height, bg_data_url)
         else:
-            # Muestra la preview en el mismo bloque donde luego se abre el editor.
-            st.image(ref_img, width=CANVAS_WIDTH)
+            if fmt in OVERLAY_FORMATS:
+                _render_overlay_section(fmt, slug)
+            overlays_spec = _build_overlay_specs(slug) if fmt in OVERLAY_FORMATS else []
+            display_img = apply_overlays(ref_img, overlays_spec)
+            st.image(display_img, width=CANVAS_WIDTH)
             if st.button("✏️ Editar", key=f"open_canvas_{slug}"):
                 st.session_state.canvas_open[slug] = True
                 st.rerun()

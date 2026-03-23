@@ -95,7 +95,7 @@ def pad_bottom(img: Image.Image, target_height: int, sample_margin_px: int = 4) 
     return canvas
 
 
-def preview_format(source_path: Path, fmt: ImageFormat, offset_y: float) -> bytes:
+def preview_format(source_path: Path, fmt: ImageFormat, offset_y: float, overlays: list | None = None) -> bytes:
     """
     Genera una previsualización del recorte en memoria sin guardar a disco.
 
@@ -116,6 +116,11 @@ def preview_format(source_path: Path, fmt: ImageFormat, offset_y: float) -> byte
     if fmt is HISTORIA and img.height < fmt.height:
         img = pad_bottom(img, fmt.height)
 
+    if overlays:
+        from peo_promotion_center.backend.compositing import apply_overlays
+
+        img = apply_overlays(img, overlays)
+
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
@@ -127,6 +132,7 @@ def generate_format(
     offset_y: float,
     slug: str,
     output_dir: Path,
+    overlays: list | None = None,
 ) -> Path:
     """
     Ejecuta el pipeline completo para un único formato de salida.
@@ -151,6 +157,11 @@ def generate_format(
 
     if fmt is HISTORIA and img.height < fmt.height:
         img = pad_bottom(img, fmt.height)
+
+    if overlays:
+        from peo_promotion_center.backend.compositing import apply_overlays
+
+        img = apply_overlays(img, overlays)
 
     out_path = output_dir / f"{slug}_{fmt.slug}.png"
     img.save(out_path, format="PNG")

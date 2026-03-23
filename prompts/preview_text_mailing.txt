@@ -17,4 +17,12 @@ Requisitos por preview text:
 - Generar expectativa e invitar a abrir el correo.
 - Evitar palabras de spam (gratis, oferta, haz clic, etc.).
 
+Estos son ejemplos de preview texts:
+Preview text: Paquete completo de 7 noches con alojamientos con desayuno, todos los vuelos con maleta, visitas según itinerario.
+Preview text: Paquete especial de 15 noches saliendo con vuelos, alojamiento, traslados, visitas y seguro de asistencia.
+Preview text: Paquete completo de 4 noches con alojamiento y servicios TOP
+Preview text: Paquete completo de 16 noches visitando España, Francia, Suiza e Italia
+Preview text: Paquete completo de 17 noches visitando España, Francia, Suiza e Italia
+Preview text: ¡Tenemos la mejor oferta de viajes en el Sudeste Asiático!
+
 Devuelve únicamente los 3 preview texts, uno por línea, numerados del 1 al 3.

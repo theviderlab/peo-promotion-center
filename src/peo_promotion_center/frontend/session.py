@@ -7,6 +7,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from peo_promotion_center.backend.compositing import OVERLAY_FORMATS, TAG_REGISTRY
+
 _SESSION_BASE_DIR = Path("descargas")
 _MAX_SESSION_AGE_HOURS = 24
 
@@ -25,6 +27,22 @@ def _cleanup_old_sessions(base_dir: Path, max_age_hours: int = _MAX_SESSION_AGE_
     for entry in base_dir.iterdir():
         if entry.is_dir() and entry.stat().st_mtime < cutoff:
             shutil.rmtree(entry, ignore_errors=True)
+
+
+def _build_initial_tag_overlays() -> dict[str, dict[str, dict]]:
+    """
+    Construye el estado inicial de tag_overlays a partir del registro de tags.
+
+    Returns:
+        Dict anidado: formato_slug → tag_id → {enabled, x, y}.
+    """
+    return {
+        fmt.slug: {
+            tag.tag_id: {"enabled": False, "x": tag.default_x, "y": tag.default_y}
+            for tag in TAG_REGISTRY
+        }
+        for fmt in OVERLAY_FORMATS
+    }
 
 
 def _init_session() -> None:
@@ -52,3 +70,4 @@ def _init_session() -> None:
     st.session_state.inpaint_pending = {"post": None, "historia": None, "google": None}
     st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}
     st.session_state.canvas_open = {"post": False, "historia": False, "google": False}
+    st.session_state.tag_overlays = _build_initial_tag_overlays()
