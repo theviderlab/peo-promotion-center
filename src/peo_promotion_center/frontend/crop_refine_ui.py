@@ -12,7 +12,7 @@ from peo_promotion_center.backend.image_processor import ALL_FORMATS, preview_fo
 from peo_promotion_center.backend.inpainter import inpaint
 
 BRUSH_SIZE_DEFAULT = 20
-CANVAS_WIDTH = 400  # px de visualización (no afecta resolución de salida)
+CANVAS_WIDTH = 320  # px de visualización (no afecta resolución de salida)
 
 _COMPONENT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "canvas_component"
@@ -51,7 +51,7 @@ def _render_pending_state(fmt: object) -> bool:
     if pending is None:
         return False
 
-    st.image(pending, caption="Resultado — ¿Aceptar o rechazar?", use_container_width=True)
+    st.image(pending, caption="Resultado — ¿Aceptar o rechazar?", width=CANVAS_WIDTH)
     col_acc, col_rej = st.columns(2)
     with col_acc:
         if st.button("✅ Aceptar", key=f"accept_{slug}"):
@@ -60,6 +60,7 @@ def _render_pending_state(fmt: object) -> bool:
                 st.session_state.inpaint_history[slug].append(current_final)
             st.session_state.inpainted_finals[slug] = pending
             st.session_state.inpaint_pending[slug] = None
+            st.session_state.canvas_open[slug] = False
             st.session_state[f"_clear_{slug}"] = True
             st.rerun()
     with col_rej:
@@ -144,11 +145,7 @@ def _render_format_expander(fmt: object, sr: object) -> None:
 
     with st.expander(f"{fmt.name} ({fmt.width}×{fmt.height})", expanded=False):  # type: ignore[attr-defined]
         offset = st.session_state.offsets[slug]
-        cropped_bytes = preview_format(sr.image_path, fmt, offset)  # type: ignore[attr-defined]
-        cropped_img = Image.open(io.BytesIO(cropped_bytes)).convert("RGB")
-
         current_final: Image.Image | None = st.session_state.inpainted_finals.get(slug)
-        ref_img: Image.Image = current_final if current_final is not None else cropped_img
 
         # ── Slider de offset (deshabilitado si hay inpainting aceptado) ──
         has_inpainting = current_final is not None
@@ -162,8 +159,13 @@ def _render_format_expander(fmt: object, sr: object) -> None:
             key=f"slider_{slug}",
             disabled=has_inpainting,
         )
+        effective_offset = offset if has_inpainting else new_offset
         if not has_inpainting:
-            st.session_state.offsets[slug] = new_offset
+            st.session_state.offsets[slug] = effective_offset
+
+        cropped_bytes = preview_format(sr.image_path, fmt, effective_offset)  # type: ignore[attr-defined]
+        cropped_img = Image.open(io.BytesIO(cropped_bytes)).convert("RGB")
+        ref_img: Image.Image = current_final if current_final is not None else cropped_img
 
         # ── Badge + botón de reset cuando hay inpainting activo ──
         if has_inpainting:
@@ -179,9 +181,6 @@ def _render_format_expander(fmt: object, sr: object) -> None:
                     st.session_state.pop(f"_clear_{slug}", None)
                     st.rerun()
 
-        # ── Preview de la imagen (recortada o inpaintada) ──
-        st.image(ref_img, use_container_width=True)
-
         # ── Estado pendiente: aceptar / rechazar ──
         if _render_pending_state(fmt):
             return
@@ -196,6 +195,8 @@ def _render_format_expander(fmt: object, sr: object) -> None:
         if st.session_state.canvas_open.get(slug, False):
             _render_canvas_editor(fmt, ref_img, canvas_height, bg_data_url)
         else:
+            # Muestra la preview en el mismo bloque donde luego se abre el editor.
+            st.image(ref_img, width=CANVAS_WIDTH)
             if st.button("✏️ Editar", key=f"open_canvas_{slug}"):
                 st.session_state.canvas_open[slug] = True
                 st.rerun()

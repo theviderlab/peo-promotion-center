@@ -128,19 +128,28 @@ def test_pad_bottom_alto_correcto():
     assert result.width == 1080
 
 
-def test_pad_bottom_color_de_relleno_viene_de_ultima_fila():
-    """El color de relleno proviene del color promedio de la última fila."""
+def test_pad_bottom_color_de_relleno_ignora_los_ultimos_4px():
+    """El color de relleno se calcula excluyendo los últimos 4 píxeles."""
     fill = (200, 100, 50)
-    # Imagen con cuerpo en gris y última fila del color fill
+    noise = (10, 240, 10)
     img = Image.new("RGB", (1080, 1500), (128, 128, 128))
-    last_row = Image.new("RGB", (1080, 1), fill)
-    img.paste(last_row, (0, 1499))
+
+    # La fila de referencia para muestreo con margen=4 es y=1495.
+    sample_row = Image.new("RGB", (1080, 1), fill)
+    img.paste(sample_row, (0, 1495))
+
+    # Simula artefactos de exportación en los últimos 4px.
+    noisy_rows = Image.new("RGB", (1080, 4), noise)
+    img.paste(noisy_rows, (0, 1496))
 
     result = pad_bottom(img, 1920)
 
-    # El píxel en la zona de relleno (más allá de 1500) debe coincidir con fill
     sample_pixel = result.getpixel((540, 1700))
     assert sample_pixel == fill
+
+    # Los últimos 4px de la imagen original quedan pisados con color sólido.
+    assert result.getpixel((540, 1496)) == fill
+    assert result.getpixel((540, 1499)) == fill
 
 
 def test_pad_bottom_imagen_original_en_parte_superior():
