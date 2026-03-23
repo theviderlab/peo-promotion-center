@@ -79,13 +79,13 @@ def test_find_image_url_priority_collapseMatProImg_over_thumb():
 _FULL_HTML = """
 <html><head><title>Paquete Roma</title></head><body>
 <h1>Paquete Roma 7 Noches</h1>
-<div class="descripcion">Viaje increíble a Roma.</div>
+<span class="precio">USD 1,200 Válido hasta el 01/01/2030</span>
+<div class="head-det-price det-separator"><h3>Ciudades que recorre</h3><p>Roma, Florencia</p></div>
+<div id="pills-frecuencia">Lunes y viernes</div>
+<div id="pills-descripcion">Hotel y desayuno</div>
+<div id="pills-consideraciones">Vuelos internacionales</div>
 <dl>
-  <dt>Destinos</dt><dd>Roma, Florencia</dd>
-  <dt>Precio</dt><dd>USD 1,200</dd>
   <dt>Duración</dt><dd>7 días</dd>
-  <dt>Incluye</dt><dd>Hotel y desayuno</dd>
-  <dt>No incluye</dt><dd>Vuelos internacionales</dd>
 </dl>
 </body></html>
 """
@@ -96,9 +96,9 @@ def test_extract_metadata_full_html():
     meta = extract_metadata(_FULL_HTML)
 
     assert meta["nombre_paquete"] == "Paquete Roma 7 Noches"
-    assert meta["descripcion"] == "Viaje increíble a Roma."
+    assert meta["frecuencia"] == "Lunes y viernes"
     assert meta["destinos"] == "Roma, Florencia"
-    assert meta["precio"] == "USD 1,200"
+    assert meta["precio"] == "USD 1,200"  # "Válido hasta..." debe ser eliminado
     assert meta["duracion"] == "7 días"
     assert meta["incluye"] == "Hotel y desayuno"
     assert meta["no_incluye"] == "Vuelos internacionales"
@@ -110,7 +110,7 @@ def test_extract_metadata_absent_fields_return_empty_string():
 
     assert meta["nombre_paquete"] == "Solo título"
     for field in [
-        "descripcion",
+        "frecuencia",
         "destinos",
         "precio",
         "duracion",

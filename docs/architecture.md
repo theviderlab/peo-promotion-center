@@ -56,12 +56,12 @@ User (browser)
 |---|---|---|
 | `image_path` | `Path` | Path to the downloaded original image |
 | `nombre_paquete` | `str` | Package name (from `<h1>`) |
-| `descripcion` | `str` | Package description |
-| `destinos` | `str` | Destination(s) |
+| `frecuencia` | `str` | Frecuencias/salidas del paquete (from `#pills-frecuencia`) |
+| `destinos` | `str` | Ciudades que recorre el paquete (from `div.head-det-price.det-separator p`) |
 | `precio` | `str` | Price |
 | `duracion` | `str` | Duration |
-| `incluye` | `str` | What's included |
-| `no_incluye` | `str` | What's not included |
+| `incluye` | `str` | What's included (from `#pills-descripcion`) |
+| `no_incluye` | `str` | What's not included (from `#pills-consideraciones`) |
 | `slug` | `str` | URL-safe package name (used for file naming) |
 
 ### `GeneratedContent` (frozen dataclass)

@@ -100,7 +100,7 @@ def test_full_pipeline(session_dir: Path) -> None:
     # --- Paso 3: Generación de contenido IA ---
     metadata = {
         "nombre_paquete": scrape_result.nombre_paquete,
-        "descripcion": scrape_result.descripcion,
+        "frecuencia": scrape_result.frecuencia,
         "destinos": scrape_result.destinos,
         "precio": scrape_result.precio,
         "duracion": scrape_result.duracion,

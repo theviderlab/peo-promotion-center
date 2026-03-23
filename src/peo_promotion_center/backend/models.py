@@ -12,7 +12,7 @@ class ScrapeResult:
 
     image_path: Path
     nombre_paquete: str
-    descripcion: str
+    frecuencia: str
     destinos: str
     precio: str
     duracion: str

@@ -58,6 +58,7 @@ def test_init_session_creates_all_keys(tmp_path: Path, monkeypatch):
     assert fake_state["inpainted_finals"] == {"post": None, "historia": None, "google": None}
     assert fake_state["inpaint_pending"] == {"post": None, "historia": None, "google": None}
     assert fake_state["inpaint_history"] == {"post": [], "historia": [], "google": []}
+    assert fake_state["last_url"] is None
 
 
 def test_init_session_creates_session_dir(tmp_path: Path, monkeypatch):
@@ -232,3 +233,54 @@ def test_build_zip_retorna_bytes(tmp_path: Path):
 
     assert isinstance(result, bytes)
     assert len(result) > 0
+
+
+# ---------------------------------------------------------------------------
+# render_url_section — metadata display
+# ---------------------------------------------------------------------------
+
+
+def test_render_url_section_calls_metadata_when_scrape_result_exists(monkeypatch):
+    """_render_scrape_metadata se llama cuando scrape_result está en session_state."""
+    from peo_promotion_center.frontend.app import render_url_section
+
+    fake_sr = MagicMock()
+    fake_state = FakeSessionState(
+        {
+            "scrape_result": fake_sr,
+            "last_url": "https://ope.example.com/paquete",
+        }
+    )
+    mock_st = MagicMock()
+    mock_st.session_state = fake_state
+    mock_st.form.return_value.__enter__ = MagicMock(return_value=None)
+    mock_st.form.return_value.__exit__ = MagicMock(return_value=False)
+    mock_st.form_submit_button.return_value = False
+
+    with (
+        patch("peo_promotion_center.frontend.app.st", mock_st),
+        patch("peo_promotion_center.frontend.app._render_scrape_metadata") as mock_render,
+    ):
+        render_url_section()
+
+    mock_render.assert_called_once_with(fake_sr)
+
+
+def test_render_url_section_skips_metadata_when_no_scrape_result(monkeypatch):
+    """_render_scrape_metadata no se llama cuando scrape_result es None."""
+    from peo_promotion_center.frontend.app import render_url_section
+
+    fake_state = FakeSessionState({"scrape_result": None, "last_url": None})
+    mock_st = MagicMock()
+    mock_st.session_state = fake_state
+    mock_st.form.return_value.__enter__ = MagicMock(return_value=None)
+    mock_st.form.return_value.__exit__ = MagicMock(return_value=False)
+    mock_st.form_submit_button.return_value = False
+
+    with (
+        patch("peo_promotion_center.frontend.app.st", mock_st),
+        patch("peo_promotion_center.frontend.app._render_scrape_metadata") as mock_render,
+    ):
+        render_url_section()
+
+    mock_render.assert_not_called()

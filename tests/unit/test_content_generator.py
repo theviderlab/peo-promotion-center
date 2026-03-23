@@ -13,7 +13,7 @@ from peo_promotion_center.backend.models import GeneratedContent
 
 _SAMPLE_METADATA = {
     "nombre_paquete": "Cancún Mágico",
-    "descripcion": "Paquete todo incluido al Caribe mexicano",
+    "frecuencia": "Salidas los lunes",
     "destinos": "Cancún, Playa del Carmen",
     "precio": "$25,000 MXN",
     "duracion": "7 noches / 8 días",

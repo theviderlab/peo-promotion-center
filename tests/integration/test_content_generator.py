@@ -9,7 +9,7 @@ load_dotenv()
 
 _SAMPLE_METADATA = {
     "nombre_paquete": "Riviera Maya Todo Incluido",
-    "descripcion": "Paquete vacacional de lujo en la Riviera Maya con hotel 5 estrellas",
+    "frecuencia": "Salidas los lunes y jueves",
     "destinos": "Playa del Carmen, Tulum",
     "precio": "$35,000 MXN por persona",
     "duracion": "5 noches / 6 días",

@@ -173,7 +173,7 @@ def extract_metadata(html: str) -> dict:
         html: Contenido HTML de la página del paquete.
 
     Returns:
-        Diccionario con campos: nombre_paquete, descripcion, destinos,
+        Diccionario con campos: nombre_paquete, frecuencia, destinos,
         precio, duracion, incluye, no_incluye.
     """
     soup = BeautifulSoup(html, "html.parser")
@@ -184,16 +184,17 @@ def extract_metadata(html: str) -> dict:
 
     return {
         "nombre_paquete": text(soup.find("h1")) or text(soup.find("title")),
-        "descripcion": text(
-            soup.find("div", class_=re.compile(r"descripci[oó]n|resumen", re.I))
-        )
-        or text(soup.select_one("main p, .contenido p, article p")),
-        "destinos": _near_label(soup, r"destinos?"),
-        "precio": text(soup.find(class_=re.compile(r"precio|price", re.I)))
-        or _near_label(soup, r"precio"),
+        "frecuencia": text(soup.find("div", id="pills-frecuencia")),
+        "destinos": _near_label(soup, r"ciudades\s+que\s+recorre"),
+        "precio": re.split(
+            r"\s*válido\b",
+            text(soup.find(class_=re.compile(r"precio|price", re.I)))
+            or _near_label(soup, r"precio"),
+            flags=re.I,
+        )[0].strip(),
         "duracion": _near_label(soup, r"duraci[oó]n"),
-        "incluye": _near_label(soup, r"^\s*incluye\s*$"),
-        "no_incluye": _near_label(soup, r"no\s+incluye", r"excluye"),
+        "incluye": text(soup.find("div", id="pills-descripcion")),
+        "no_incluye": text(soup.find("div", id="pills-consideraciones")),
     }
 
 
@@ -235,7 +236,7 @@ def scrape_package(url: str, session_dir: Path) -> ScrapeResult:
         return ScrapeResult(
             image_path=image_path,
             nombre_paquete=meta["nombre_paquete"],
-            descripcion=meta["descripcion"],
+            frecuencia=meta["frecuencia"],
             destinos=meta["destinos"],
             precio=meta["precio"],
             duracion=meta["duracion"],

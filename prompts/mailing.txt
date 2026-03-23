@@ -7,7 +7,7 @@ Nunca utilizar estas palabras: "mega", "vibrante"
 Genera exactamente 3 asuntos de correo electrónico para una campaña del siguiente paquete:
 
 Paquete: {nombre_paquete}
-Descripción: {descripcion}
+Frecuencia: {frecuencia}
 Precio desde: {precio}
 Duración: {duracion}
 

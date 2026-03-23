@@ -46,7 +46,7 @@ def test_scrape_result_fields_never_none(tmp_path):
 
     str_fields = [
         "nombre_paquete",
-        "descripcion",
+        "frecuencia",
         "destinos",
         "precio",
         "duracion",

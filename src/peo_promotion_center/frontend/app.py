@@ -14,6 +14,7 @@ from peo_promotion_center.backend.scraper import scrape_package
 from peo_promotion_center.frontend.auth import render_auth_gate
 from peo_promotion_center.frontend.cookies import delete_auth_cookie, get_cookie_manager
 from peo_promotion_center.frontend.crop_refine_ui import render_crop_refine_section
+from peo_promotion_center.frontend.scrape_display import _render_scrape_metadata
 from peo_promotion_center.frontend.session import _build_initial_tag_overlays, _init_session
 from peo_promotion_center.frontend.zip_builder import build_zip
 
@@ -27,6 +28,10 @@ def render_url_section() -> None:
         )
         submitted = st.form_submit_button("Procesar paquete")
 
+    if st.session_state.scrape_result is not None:
+        st.link_button("🔗 Ver paquete en PEO", url=st.session_state.last_url)
+        _render_scrape_metadata(st.session_state.scrape_result)
+
     if not submitted:
         return
 
@@ -37,6 +42,7 @@ def render_url_section() -> None:
     try:
         with st.spinner("Conectando y descargando imagen..."):
             sr = scrape_package(url, st.session_state.session_dir)
+        st.session_state.last_url = url
         st.session_state.scrape_result = sr
         st.session_state.generated_content = None
         st.session_state.zip_bytes = None
@@ -68,6 +74,7 @@ def render_url_section() -> None:
     except Exception as exc:
         st.error(f"Error al generar contenido con IA: {exc}")
 
+    st.rerun()
 
 
 def render_content_section() -> None:

@@ -7,7 +7,7 @@ El texto debe ser acorde para un público Mexicano.
 Genera exactamente 3 textos de previsualización (preview text) de correo electrónico para una campaña del siguiente paquete:
 
 Paquete: {nombre_paquete}
-Descripción: {descripcion}
+Frecuencia: {frecuencia}
 Precio desde: {precio}
 Duración: {duracion}
 

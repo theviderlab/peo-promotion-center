@@ -60,6 +60,7 @@ def _init_session() -> None:
     st.session_state.session_dir = _SESSION_BASE_DIR / st.session_state.session_id
     st.session_state.session_dir.mkdir(parents=True, exist_ok=True)
     st.session_state.scrape_result = None
+    st.session_state.last_url = None
     st.session_state.generated_content = None
     st.session_state.zip_bytes = None
     st.session_state.zip_hash = None

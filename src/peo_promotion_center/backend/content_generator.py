@@ -129,7 +129,7 @@ def generate_content(metadata: dict, api_key: str | None = None) -> GeneratedCon
 
     Args:
         metadata: Diccionario con los campos del paquete turístico
-                  (nombre_paquete, descripcion, destinos, precio,
+                  (nombre_paquete, frecuencia, destinos, precio,
                    duracion, incluye, no_incluye).
         api_key: API key de OpenAI. Si es None, se usa la variable de entorno
                  OPENAI_API_KEY (modo dueño) o se lanza ValueError.
