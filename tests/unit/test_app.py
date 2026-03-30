@@ -256,6 +256,7 @@ def test_render_url_section_calls_metadata_when_scrape_result_exists(monkeypatch
     mock_st.form.return_value.__enter__ = MagicMock(return_value=None)
     mock_st.form.return_value.__exit__ = MagicMock(return_value=False)
     mock_st.form_submit_button.return_value = False
+    mock_st.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
 
     with (
         patch("peo_promotion_center.frontend.app.st", mock_st),
@@ -276,6 +277,7 @@ def test_render_url_section_skips_metadata_when_no_scrape_result(monkeypatch):
     mock_st.form.return_value.__enter__ = MagicMock(return_value=None)
     mock_st.form.return_value.__exit__ = MagicMock(return_value=False)
     mock_st.form_submit_button.return_value = False
+    mock_st.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
 
     with (
         patch("peo_promotion_center.frontend.app.st", mock_st),

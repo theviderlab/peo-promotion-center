@@ -123,7 +123,12 @@ def generate_preview_texts(metadata: dict, llm: ChatOpenAI) -> list[str]:
 
 
 @traceable(name="generate_content")
-def generate_content(metadata: dict, api_key: str | None = None) -> GeneratedContent:
+def generate_content(
+    metadata: dict,
+    api_key: str | None = None,
+    include_rrss: bool = True,
+    include_mailing: bool = True,
+) -> GeneratedContent:
     """
     Genera copy para redes sociales, asuntos y preview texts de mailing usando OpenAI.
 
@@ -133,9 +138,12 @@ def generate_content(metadata: dict, api_key: str | None = None) -> GeneratedCon
                    duracion, incluye, no_incluye).
         api_key: API key de OpenAI. Si es None, se usa la variable de entorno
                  OPENAI_API_KEY (modo dueño) o se lanza ValueError.
+        include_rrss: Si es False, omite la generación del copy para redes sociales.
+        include_mailing: Si es False, omite la generación de asuntos y preview texts.
 
     Returns:
         GeneratedContent con el copy, los 3 asuntos y los 3 preview texts generados.
+        Los campos omitidos se devuelven como cadenas vacías.
 
     Raises:
         FileNotFoundError: Si alguno de los archivos de prompt no existe.
@@ -151,9 +159,9 @@ def generate_content(metadata: dict, api_key: str | None = None) -> GeneratedCon
 
     # tracing_context propaga thread_id a los child runs @traceable
     with tracing_context(metadata={"thread_id": thread_id}):
-        copy_redes = generate_social_copy(metadata, llm)
-        asuntos_mailing = generate_mailing_subjects(metadata, llm)
-        preview_texts_mailing = generate_preview_texts(metadata, llm)
+        copy_redes = generate_social_copy(metadata, llm) if include_rrss else ""
+        asuntos_mailing = generate_mailing_subjects(metadata, llm) if include_mailing else ["", "", ""]
+        preview_texts_mailing = generate_preview_texts(metadata, llm) if include_mailing else ["", "", ""]
     return GeneratedContent(
         copy_redes=copy_redes,
         asuntos_mailing=asuntos_mailing,

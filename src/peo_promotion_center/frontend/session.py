@@ -72,3 +72,6 @@ def _init_session() -> None:
     st.session_state.inpaint_history = {"post": [], "historia": [], "google": []}
     st.session_state.canvas_open = {"post": False, "historia": False, "google": False}
     st.session_state.tag_overlays = _build_initial_tag_overlays()
+    st.session_state.include_mailing = True
+    st.session_state.include_rrss = True
+    st.session_state.include_ai_text = True
